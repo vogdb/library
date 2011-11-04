@@ -88,3 +88,5 @@ log4j = {
 
     warn   'org.mortbay.log'
 }
+
+grails.gorm.failOnError = true
