@@ -14,10 +14,11 @@ class BookControllerTests extends GroovyTestCase {
         def doc = new Document(description: "mustache").save()
         new Reader(fio: "uncle Fedor", document: new DocumentInstance(document: doc, details: "some")).save()
         def author = new Author(fio: "Eduard Uspenskiy").save()
-        def book = new Book(title: BOOK_TITLE, authors: [author]).save()
+        def book = new Book(title: BOOK_TITLE, authors: [author])
         for(int i = 0; i < BOOK_INSTANCE_SIZE; i++){
-            new BookInstance(code: i.toString(), book: book).save()
+            book.addToInstances(new BookInstance(code: i.toString()))
         }
+        book.save()
     }
 
     void testReleaseEmpty() {
@@ -35,7 +36,7 @@ class BookControllerTests extends GroovyTestCase {
         for(int i = 0; i < BOOK_INSTANCE_SIZE; i++){
             releaseBook(bookInstanceList.get(i).code)
             assertStatus(200)
-            assertEquals(BOOK_INSTANCE_SIZE - i + 1, BookInstance.findAllByReaderIsNull().size())
+            assertEquals(i + 1, BookInstance.findAllByReaderIsNull().size())
         }
         releaseBook(bookInstanceList.get(0).code)
         assertStatus(400)
