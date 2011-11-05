@@ -9,43 +9,38 @@ class BookController {
         String title = params.title
         String readerId = params.readerId
         if (title && readerId) {
-            boolean success = false
-            for (bookInst in Book.findByTitle(title).instances) {
-                if (bookInst.reader == null) {
-                    bookInst.reader = Reader.get(Long.valueOf(readerId))
-                    bookInst.save()
-                    success = true
-                    render "OK"
-                    break
-                }
+            def book = Book.findByTitle(title)
+            if (book.readers?.size() < book.number) {
+                Reader.get(Long.valueOf(readerId)).addToBooks(book).save()
+            } else {
+                error("no books")
             }
-            if (!success)
-                error()
         } else {
-            error()
+            error("no params")
         }
     }
 
     def release = {
-        String code = params.code
-        if (code) {
-            def bookInst = BookInstance.findByCode(code)
-            def reader = bookInst.reader
-            if (reader) {
-                reader.removeFromBooks(bookInst)
+
+        String title = params.title
+        String readerId = params.readerId
+        if (title && readerId) {
+            Reader reader = Reader.get(Long.valueOf(readerId))
+            Book book = Book.findByTitle(title)
+            if (reader.books?.contains(book)) {
+                reader.removeFromBooks(book)
                 reader.save()
                 render "OK"
-            }else{
-                error()
+            } else {
+                error("reader doesn't have such book")
             }
         } else {
-            error()
+            error("no params")
         }
-
     }
 
-    private void error() {
-        render "Error"
+    private void error(String msg) {
+        render msg
         response.status = 400
     }
 }
